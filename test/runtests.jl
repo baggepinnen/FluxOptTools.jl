@@ -10,6 +10,7 @@ Zygote.refresh()
 pars = Flux.params(m)
 pars0 = deepcopy(pars)
 npars = paramlength(pars)
+@test npars == 10
 @test begin
     copyto!(pars, zeros(pars))
     all(all(iszero, p) for p in pars)
