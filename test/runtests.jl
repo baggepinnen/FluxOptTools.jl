@@ -1,4 +1,4 @@
-using FluxOptTools, Optim, Zygote, Flux, Test
+using FluxOptTools, Optim, Zygote, Flux, Test, Statistics, Random
 ##
 m = Chain(Dense(1,3,tanh) , Dense(3,1))
 x = LinRange(-pi,pi,100)'
