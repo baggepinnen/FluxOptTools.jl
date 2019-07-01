@@ -75,7 +75,7 @@ function optfuns(loss, pars::Flux.Params)
             l, back = Zygote.forward(loss, pars)
             grads = back(l)
             copyto!(G, grads)
-            return value
+            return l
         end
         if F != nothing
             return loss()
