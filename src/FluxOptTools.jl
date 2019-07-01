@@ -59,7 +59,7 @@ end
 
 function optfuns(loss, pars::Flux.Params)
     grads = Zygote.gradient(loss, pars)
-    gradvec = zeros(grads)
+    p0 = copyto!(zeros(pars), pars)
     gradfun = function (g,w)
         copyto!(pars, w)
         grads = Zygote.gradient(loss, pars)
@@ -69,10 +69,22 @@ function optfuns(loss, pars::Flux.Params)
         copyto!(pars, w)
         loss()
     end
-    lossfun, gradfun
+    fg! = function (F,G,w)
+        copyto!(pars, w)
+        if G != nothing
+            l, back = Zygote.forward(loss, pars)
+            grads = back(l)
+            copyto!(G, grads)
+            return value
+        end
+        if F != nothing
+            return loss()
+        end
+    end
+    lossfun, gradfun, fg!, p0
 end
 
-@recipe function lossplot(loss::Function, pars::Flux.Params, l=0.1)
+@recipe function lossplot(loss::Function, pars::Flux.Params; l=0.1, npoints=30)
     p       = zeros(pars)
     copyto!(p,pars)
     pcopy   = deepcopy(p)
@@ -80,14 +92,14 @@ end
     dx,dy   = randn(length(p)),randn(length(p))
     dx     *= n0*l/norm(dx)
     dy     *= n0*l/norm(dy)
-    pertvec = LinRange(-1,1,20)
+    pertvec = LinRange(-1,1,npoints)
     losses = map(Iterators.product(pertvec,pertvec)) do (lx,ly)
         pi = p + lx*dx + ly*dy
         copyto!(pars, pi)
         loss()
     end
     copyto!(pars, pcopy)
-    seriestype := :contour
+    seriestype --> :contour
     pertvec,pertvec,losses
 end
 

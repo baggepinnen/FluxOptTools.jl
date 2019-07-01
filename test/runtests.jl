@@ -9,7 +9,7 @@ loss() = mean(abs2, m(x) .- y)
 Zygote.refresh()
 pars = Flux.params(m)
 pars0 = deepcopy(pars)
-npars = Optim4Flux.paramlength(pars)
+npars = paramlength(pars)
 @test begin
     copyto!(pars, zeros(pars))
     all(all(iszero, p) for p in pars)
@@ -55,11 +55,55 @@ for i = 1:500
 end
 @test loss() < 1e-1
 plot(x[sp], [y[sp] m(x)[sp]])  |> display
-plot(loss, pars,0.1) |> display
+plot(loss, pars, l=0.5, npoints=50, seriestype=:contour) |> display
 
-lossfun, gradfun = optfuns(loss, pars)
-res = Optim.optimize(lossfun, gradfun, randn(paramlength(pars)))
+lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
+res = Optim.optimize(Optim.only_fg!(fg!), p0)
 @test loss() < 1e-3
-plot(loss, pars,0.1) |> display
+plot(loss, pars, l=0.1, npoints=50) |> display
 
 plot(x[sp], [y[sp] m(x)[sp]]) |> display
+
+
+
+## Benchmark Optim vs ADAM
+losses_adam = map(1:20) do i
+    @show i
+    Random.seed!(i)
+    m = Chain(Dense(1,3,tanh) , Dense(3,1))
+    x = LinRange(-pi,pi,100)'
+    y = sin.(x)
+    loss() = mean(abs2, m(x) .- y)
+    Zygote.refresh()
+    pars = Flux.params(m)
+    opt = ADAM(0.02)
+    trace = [loss()]
+    for i = 1:1000
+        l,back = Zygote.forward(loss, pars)
+        push!(trace, l)
+        grads = back(l)
+        Flux.Optimise.update!(opt, pars, grads)
+    end
+    trace
+end
+
+res_lbfgs = map(1:20) do i
+    @show i
+    Random.seed!(i)
+    m = Chain(Dense(1,3,tanh) , Dense(3,1))
+    x = LinRange(-pi,pi,100)'
+    y = sin.(x)
+    loss() = mean(abs2, m(x) .- y)
+    Zygote.refresh()
+    pars = Flux.params(m)
+    lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
+    res = Optim.optimize(Optim.only_fg!(fg!), p0, Optim.Options(iterations=1000, store_trace=true))
+    res
+end
+
+
+##
+valuetrace(r) = getfield.(r.trace, :value)
+valuetraces = valuetrace.(res_lbfgs)
+plot(valuetraces, yscale=:log10, xscale=:identity, lab="", c=:red)
+plot!(losses_adam, lab="", c=:blue, xlabel="Epochs", ylabel="Loss")
