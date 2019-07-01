@@ -1,0 +1,19 @@
+name = "FluxOptTools"
+uuid = "ca11d760-9bce-11e9-0b7e-4f72fcadb4f9"
+authors = ["Fredrik Bagge Carlson <baggepinnen@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+
+
+[extras]
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test", "Plots"]
