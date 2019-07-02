@@ -3,17 +3,18 @@ module FluxOptTools
 using LinearAlgebra, Optim, Flux, Zygote, RecipesBase
 import Base.copyto!
 
-export gradlength, paramlength, optfuns
+export veclength, optfuns
 
-gradlength(grads::Zygote.Grads) = sum(length(g[1]) for g in grads.grads)
-paramlength(params::Flux.Params) = sum(length, params.params)
-Base.zeros(grads::Zygote.Grads) = zeros(gradlength(grads))
-Base.zeros(pars::Flux.Params) = zeros(paramlength(pars))
+veclength(grads::Zygote.Grads) = sum(length(g[1]) for g in grads.grads)
+veclength(params::Flux.Params) = sum(length, params.params)
+veclength(x) = length(x)
+Base.zeros(grads::Zygote.Grads) = zeros(veclength(grads))
+Base.zeros(pars::Flux.Params) = zeros(veclength(pars))
 
 # Grads =============================================
 
 function copyto!(v::AbstractArray, grads::Zygote.Grads)
-    @assert length(v) == gradlength(grads)
+    @assert length(v) == veclength(grads)
     s = 1
     for g in grads.grads
         l = length(g[2])
@@ -36,7 +37,7 @@ end
 # Params =============================================
 
 function copyto!(v::AbstractArray, pars::Flux.Params)
-    @assert length(v) == paramlength(pars)
+    @assert length(v) == veclength(pars)
     s = 1
     for g in pars.params
         l = length(g)

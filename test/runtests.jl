@@ -9,7 +9,7 @@ loss() = mean(abs2, m(x) .- y)
 Zygote.refresh()
 pars = Flux.params(m)
 pars0 = deepcopy(pars)
-npars = paramlength(pars)
+npars = veclength(pars)
 @test npars == 10
 @test begin
     copyto!(pars, zeros(pars))
@@ -48,12 +48,12 @@ Zygote.refresh()
 pars = Flux.params(m)
 
 opt = ADAM(0.01)
-cb = ()-> @show loss()
+@show loss()
 for i = 1:500
     grads = Zygote.gradient(loss, pars)
     Flux.Optimise.update!(opt, pars, grads)
-    @show loss()
 end
+@show loss()
 @test loss() < 1e-1
 plot(x[sp], [y[sp] m(x)[sp]])  |> display
 plot(loss, pars, l=0.5, npoints=50, seriestype=:contour) |> display
@@ -68,7 +68,7 @@ plot(x[sp], [y[sp] m(x)[sp]]) |> display
 
 
 ## Benchmark Optim vs ADAM
-losses_adam = map(1:20) do i
+losses_adam = map(1:10) do i
     @show i
     Random.seed!(i)
     m = Chain(Dense(1,3,tanh) , Dense(3,1))
@@ -77,9 +77,9 @@ losses_adam = map(1:20) do i
     loss() = mean(abs2, m(x) .- y)
     Zygote.refresh()
     pars = Flux.params(m)
-    opt = ADAM(0.02)
+    opt = Flux.ADAM(0.02)
     trace = [loss()]
-    for i = 1:1000
+    for i = 1:2000
         l,back = Zygote.forward(loss, pars)
         push!(trace, l)
         grads = back(l)
@@ -88,7 +88,7 @@ losses_adam = map(1:20) do i
     trace
 end
 
-res_lbfgs = map(1:20) do i
+res_lbfgs = map(1:10) do i
     @show i
     Random.seed!(i)
     m = Chain(Dense(1,3,tanh) , Dense(3,1))
@@ -98,13 +98,39 @@ res_lbfgs = map(1:20) do i
     Zygote.refresh()
     pars = Flux.params(m)
     lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
-    res = Optim.optimize(Optim.only_fg!(fg!), p0, Optim.Options(iterations=1000, store_trace=true))
+    res = Optim.optimize(Optim.only_fg!(fg!), p0, Optim.Options(iterations=2000, store_trace=true))
     res
+end
+
+losses_SLBFGS = map(1:10) do i
+    @show i
+    Random.seed!(i)
+    m = Chain(Dense(1,3,tanh) , Dense(3,1))
+    x = LinRange(-pi,pi,100)'
+    y = sin.(x)
+    loss() = mean(abs2, m(x) .- y)
+    Zygote.refresh()
+    pars = Flux.params(m)
+    lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
+    opt = SLBFGS(lossfun,p0; m=5, ᾱ=0.1, ρ=false, λ=1.)
+    function train(opt, p0, iters=20)
+        p = copy(p0)
+        g = zeros(veclength(pars))
+        trace = [loss()]
+        for i = 1:iters
+            g = gradfun(g,p)
+            p = apply(opt, g, p)
+            push!(trace, opt.fold)
+        end
+        trace
+    end
+    trace = train(opt,p0, 2000)
 end
 
 
 ##
 valuetrace(r) = getfield.(r.trace, :value)
 valuetraces = valuetrace.(res_lbfgs)
-plot(valuetraces, yscale=:log10, xscale=:identity, lab="", c=:red)
+plot(valuetraces, yscale=:log10, xscale=:log10, lab="", c=:red)
 plot!(losses_adam, lab="", c=:blue, xlabel="Epochs", ylabel="Loss")
+plot!(losses_SLBFGS, lab="", c=:green)
