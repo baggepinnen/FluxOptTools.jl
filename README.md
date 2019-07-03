@@ -16,7 +16,7 @@ pars   = Flux.params(m)
 lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
 res = Optim.optimize(Optim.only_fg!(fg!), p0, Optim.Options(iterations=1000, store_trace=true))
 ```
-The utility provided by this package is the function `optfuns` which returns three functions and `p0`, a vectorized version of `pars`. L-BFGS typically has better convergence properties than, e.g., the ADAM optimizer. Here's a benchmark where L-BFGS in red beats ADAM with tuned step size in blue.
+The utility provided by this package is the function `optfuns` which returns three functions and `p0`, a vectorized version of `pars`. BFGS typically has better convergence properties than, e.g., the ADAM optimizer. Here's a benchmark where BFGS in red beats ADAGrad with tuned step size in blue, and a [stochastic L-BFGS [1]](https://arxiv.org/abs/1802.04310) ([implemented](https://github.com/baggepinnen/FluxOptTools.jl/blob/master/src/SLBFGS.jl) in this repository) in green performs somewhere in between.
 ![losses](figs/losses.svg)
 
 The code for this benchmark is in the `runtests.jl`.
@@ -44,3 +44,7 @@ copyto!(g,grads) # Store grads in vector g
 copyto!(grads,g) # Reverse
 ```
 This is what is used under the hood in the functions returned from `optfuns` in order to have everything on a form that Optim understands.
+
+
+# References
+[[1] "Stochastic quasi-Newton with adaptive step lengths for large-scale problems", Adrian Wills, Thomas Schön, 2018](https://arxiv.org/abs/1802.04310)

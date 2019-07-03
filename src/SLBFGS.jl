@@ -24,7 +24,6 @@ function SLBFGS(f,x0; m=20, kwargs...)
     SLBFGS(;m=m, xold=x0, gold=zeros(d), f=f, Y=Y, S=S, kwargs...)
 end
 
-
 function apply(opt::SLBFGS, g, x)
     ρ, κ, ᾱ = opt.ρ, opt.κ, opt.ᾱ
     update_YS!(opt, g, x)
@@ -45,12 +44,13 @@ function apply(opt::SLBFGS, g, x)
 end
 
 function update_YS!(opt, g, x)
+    opt.k == 1 && (opt.gold .= g)
     Y,S = opt.Y, opt.S
     ind = ((opt.k-1) % opt.m) + 1
     Y[:,ind] .= g .- opt.gold
     S[:,ind] .= x .- opt.xold
-    opt.gold  = g
-    opt.xold  = x
+    opt.gold .= g
+    opt.xold .= x
 end
 
 function search_direction(opt, g)
@@ -65,11 +65,10 @@ function search_direction(opt, g)
     R = cholesky(Hermitian(Y'Y + λ*I))
     H̄ = I
     z = (1/λ)Y*(S'g) + H̄*g # QUESTION: they do not mention what H̄ they use
-    w = R\(R.U'\(Y'z))
+    w = R\(Y'z)
     p = -z + Y*w
     β = 2*max(0,p'g/(g'g))
     @. p -= β*g
-
 end
 
 function acceptance_indicator(opt, ξ)
@@ -81,11 +80,12 @@ function acceptance_indicator(opt, ξ)
     fit!(opt.σ²,fξ)
     r < cdf(Normal(0,√(value(opt.σ²))), -ϵ), fξ # QUESTION: The paper is not clear about this acceptance probability, this is what I think they mean, but should really ask the authors to clarify
     # rand() < exp(ϵ/value(opt.σ²)), fξ
+    # rand() < exp(ϵ), fξ
 end
 
 ##
 # using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random
-# m = Chain(Dense(1,3,tanh) , Dense(3,1))
+# m = Chain(Dense(1,3,tanh), Dense(3,3,tanh), Dense(3,3,tanh) , Dense(3,1))
 # x = LinRange(-pi,pi,100)'
 # y = sin.(x)
 # sp = sortperm(x[:])
@@ -98,7 +98,7 @@ end
 #
 # lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
 #
-# opt = SLBFGS(lossfun,p0; m=3, ᾱ=0.2, ρ=false, λ=10.)
+# opt = SLBFGS(lossfun,p0; m=3, ᾱ=1., ρ=false, λ=0.0001)
 # function train(opt, p0, iters=20)
 #     p = copy(p0)
 #     g = zeros(veclength(pars))
@@ -112,6 +112,6 @@ end
 #     trace
 # end
 #
-# trace = train(opt,p0, 1000)
-# plot(trace, yscale=:log10, xscale=:log10, size=(400,300))
+# trace = train(opt,p0, 3000)
+# plot(trace, yscale=:log10, xscale=:identity, size=(400,300))
 # plot(x', [y' m(x)'])  |> display
