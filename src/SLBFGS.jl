@@ -9,7 +9,7 @@ Base.@kwdef mutable struct SLBFGS{F,Σ}
     α::Float64 = ᾱ
     fold::Float64 = Inf
     k::Int = 1 # Internal iteration index
-    σ²::Σ = OnlineStats.Variance()
+    σ²::Σ = OnlineStats.Variance(weight=McclainWeight(.1))
     xold::Vector{Float64}
     gold::Vector{Float64}
     f::F
