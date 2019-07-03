@@ -1,4 +1,4 @@
-export SLBFGS
+export SLBFGS, apply
 using Distributions, OnlineStats
 Base.@kwdef mutable struct SLBFGS{F,Σ}
     m::Int = 20# Memory length, was ∈ [2, 54] in paper
@@ -64,8 +64,8 @@ function search_direction(opt, g)
     # R6 = update(R6, r3)
     R = cholesky(Hermitian(Y'Y + λ*I))
     H̄ = I
-    z = inv(λ)Y*(S'g) + H̄*g # QUESTION: they do not mention what H̄ they use
-    w = R\(R.L'\(Y'z))
+    z = (1/λ)Y*(S'g) + H̄*g # QUESTION: they do not mention what H̄ they use
+    w = R\(R.U'\(Y'z))
     p = -z + Y*w
     β = 2*max(0,p'g/(g'g))
     @. p -= β*g
@@ -80,37 +80,38 @@ function acceptance_indicator(opt, ξ)
     # cdf(Normal(-ϵ,σ²)) # QUESTION: use online stats to calculate this variance?
     fit!(opt.σ²,fξ)
     r < cdf(Normal(0,√(value(opt.σ²))), -ϵ), fξ # QUESTION: The paper is not clear about this acceptance probability, this is what I think they mean, but should really ask the authors to clarify
+    # rand() < exp(ϵ/value(opt.σ²)), fξ
 end
 
 ##
-using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random
-m = Chain(Dense(1,3,tanh) , Dense(3,1))
-x = LinRange(-pi,pi,100)'
-y = sin.(x)
-sp = sortperm(x[:])
-
-loss() = mean(abs2, m(x) .- y)
-
-@show loss()
-# Zygote.refresh()
-pars = Flux.params(m)
-
-lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
-
-opt = SLBFGS(lossfun,p0; m=3, ᾱ=0.2, ρ=false, λ=10.)
-function train(opt, p0, iters=20)
-    p = copy(p0)
-    g = zeros(veclength(pars))
-    trace = [loss()]
-    for i = 1:iters
-        g = gradfun(g,p)
-        p = apply(opt, g, p)
-        i % 20 == 0 && @show opt.fold
-        push!(trace, opt.fold)
-    end
-    trace
-end
-
-trace = train(opt,p0, 1000)
-plot(trace, yscale=:log10, xscale=:log10, size=(400,300))
+# using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random
+# m = Chain(Dense(1,3,tanh) , Dense(3,1))
+# x = LinRange(-pi,pi,100)'
+# y = sin.(x)
+# sp = sortperm(x[:])
+#
+# loss() = mean(abs2, m(x) .- y)
+#
+# @show loss()
+# # Zygote.refresh()
+# pars = Flux.params(m)
+#
+# lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
+#
+# opt = SLBFGS(lossfun,p0; m=3, ᾱ=0.2, ρ=false, λ=10.)
+# function train(opt, p0, iters=20)
+#     p = copy(p0)
+#     g = zeros(veclength(pars))
+#     trace = [loss()]
+#     for i = 1:iters
+#         g = gradfun(g,p)
+#         p = apply(opt, g, p)
+#         i % 20 == 0 && @show opt.fold
+#         push!(trace, opt.fold)
+#     end
+#     trace
+# end
+#
+# trace = train(opt,p0, 1000)
+# plot(trace, yscale=:log10, xscale=:log10, size=(400,300))
 # plot(x', [y' m(x)'])  |> display
