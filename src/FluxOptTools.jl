@@ -104,5 +104,6 @@ end
     pertvec,pertvec,losses
 end
 
+include("SLBFGS.jl")
 
 end # module

@@ -59,7 +59,7 @@ plot(x[sp], [y[sp] m(x)[sp]])  |> display
 plot(loss, pars, l=0.5, npoints=50, seriestype=:contour) |> display
 
 lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
-res = Optim.optimize(Optim.only_fg!(fg!), p0)
+res = Optim.optimize(Optim.only_fg!(fg!), p0, BFGS())
 @test loss() < 1e-3
 plot(loss, pars, l=0.1, npoints=50) |> display
 
@@ -98,11 +98,11 @@ res_lbfgs = map(1:10) do i
     Zygote.refresh()
     pars = Flux.params(m)
     lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
-    res = Optim.optimize(Optim.only_fg!(fg!), p0, Optim.Options(iterations=2000, store_trace=true))
+    res = Optim.optimize(Optim.only_fg!(fg!), p0, BFGS(), Optim.Options(iterations=2000, store_trace=true))
     res
 end
 
-losses_SLBFGS = map(1:10) do i
+losses_SLBFGS = map(1:4) do i
     @show i
     Random.seed!(i)
     m = Chain(Dense(1,3,tanh) , Dense(3,1))
@@ -112,7 +112,7 @@ losses_SLBFGS = map(1:10) do i
     Zygote.refresh()
     pars = Flux.params(m)
     lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
-    opt = SLBFGS(lossfun,p0; m=5, ᾱ=0.1, ρ=false, λ=1.)
+    opt = SLBFGS(lossfun,p0; m=5, ᾱ=0.1, ρ=false, λ=1., κ=0.1)
     function train(opt, p0, iters=20)
         p = copy(p0)
         g = zeros(veclength(pars))
