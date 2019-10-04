@@ -10,7 +10,7 @@ Zygote.refresh()
 pars = Flux.params(m)
 pars0 = deepcopy(pars)
 npars = veclength(pars)
-@test npars == 10
+@test npars == 46
 @test begin
     copyto!(pars, zeros(pars))
     all(all(iszero, p) for p in pars)
@@ -77,7 +77,7 @@ losses_adam = map(1:10) do i
     loss() = mean(abs2, m(x) .- y)
     Zygote.refresh()
     pars = Flux.params(m)
-    opt = Flux.ADAGrad(0.2)
+    opt = Flux.ADAM(0.2)
     trace = [loss()]
     for i = 1:500
         l,back = Zygote.forward(loss, pars)

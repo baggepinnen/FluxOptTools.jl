@@ -58,7 +58,7 @@ function copyto!(pars::Flux.Params, v::AbstractArray)
 end
 
 
-function optfuns(loss, pars::Flux.Params)
+function optfuns(loss, pars::Union{Flux.Params, Zygote.Params})
     grads = Zygote.gradient(loss, pars)
     p0 = copyto!(zeros(pars), pars)
     gradfun = function (g,w)
