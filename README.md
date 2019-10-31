@@ -4,7 +4,7 @@
 # FluxOptTools
 This package contains some utilities to enhance training of [Flux.jl](https://github.com/FluxML/Flux.jl) models.
 ## Train using Optim
-[Optim.jl](https://github.com/JuliaNLSolvers/Optim.jl) can be used to train Flux models (if Flux is on branch `zygote`, run `(v1.3) pkg> add Flux#zygote`), here's an example how
+[Optim.jl](https://github.com/JuliaNLSolvers/Optim.jl) can be used to train Flux models (if Flux is on branch `master`, run `(v1.3) pkg> add Flux#master`), here's an example how
 ```julia
 using Flux, Zygote, Optim, FluxOptTools, Statistics
 m      = Chain(Dense(1,3,tanh) , Dense(3,1))
