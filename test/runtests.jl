@@ -2,17 +2,13 @@ using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random
 ##
 @testset "FluxOptTools" begin
 @info "Testing FluxOptTools"
-
+@testset "copyto" begin
+@info "Testing copyto"
 
 m = Chain(Dense(1,5,tanh), Dense(5,5,tanh) , Dense(5,1))
 x = LinRange(-pi,pi,100)'
 y = sin.(x)
 sp = sortperm(x[:])
-
-
-@testset "copyto" begin
-@info "Testing copyto"
-
 
 loss() = mean(abs2, m(x) .- y)
 Zygote.refresh()
@@ -39,13 +35,14 @@ p = zeros(grads)
 copyto!(grads, 1:npars)
 copyto!(p, grads)
 @test p == 1:npars
-
 end
 
 ## Test optimization ============================================
-@testset "Optimization" begin
-@info "Testing Optimization"
 
+end
+
+
+# NOTE: tests below fail if they are in a testset, probably Zygote's fault
 
 m = Chain(Dense(1,5,tanh), Dense(5,5,tanh) , Dense(5,1))
 x = LinRange(-pi,pi,100)'
@@ -144,5 +141,3 @@ valuetraces = valuetrace.(res_lbfgs)
 plot(valuetraces, yscale=:log10, xscale=:identity, lab="", c=:red)
 plot!(losses_adam, lab="", c=:blue, xlabel="Epochs", ylabel="Loss")
 plot!(losses_SLBFGS, lab="", c=:green)
-end
-end
