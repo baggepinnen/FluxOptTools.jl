@@ -1,9 +1,18 @@
 using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random
 ##
+@testset "FluxOptTools" begin
+@info "Testing FluxOptTools"
+
+
 m = Chain(Dense(1,5,tanh), Dense(5,5,tanh) , Dense(5,1))
 x = LinRange(-pi,pi,100)'
 y = sin.(x)
 sp = sortperm(x[:])
+
+
+@testset "copyto" begin
+@info "Testing copyto"
+
 
 loss() = mean(abs2, m(x) .- y)
 Zygote.refresh()
@@ -11,31 +20,32 @@ pars = Flux.params(m)
 pars0 = deepcopy(pars)
 npars = veclength(pars)
 @test npars == 46
-@test begin
-    copyto!(pars, zeros(pars))
-    all(all(iszero, p) for p in pars)
-end
-@test begin
-    p = zeros(pars)
-    copyto!(pars, 1:npars)
-    copyto!(p, pars)
-    p == 1:npars
-end
+
+copyto!(pars, zeros(pars))
+@test all(all(iszero, p) for p in pars)
+
+p = zeros(pars)
+copyto!(pars, 1:npars)
+copyto!(p, pars)
+@test p == 1:npars
+
 grads = Zygote.gradient(loss, pars)
 grads0 = deepcopy(grads)
-@test begin
-    copyto!(grads, zeros(grads))
-    all(all(iszero,grads[k]) for k in keys(grads.grads))
-end
-@test begin
-    p = zeros(grads)
-    copyto!(grads, 1:npars)
-    copyto!(p, grads)
-    p == 1:npars
-end
 
+copyto!(grads, zeros(grads))
+@test all(all(iszero,grads[k]) for k in keys(grads.grads))
+
+p = zeros(grads)
+copyto!(grads, 1:npars)
+copyto!(p, grads)
+@test p == 1:npars
+
+end
 
 ## Test optimization ============================================
+@testset "Optimization" begin
+@info "Testing Optimization"
+
 
 m = Chain(Dense(1,5,tanh), Dense(5,5,tanh) , Dense(5,1))
 x = LinRange(-pi,pi,100)'
@@ -80,7 +90,7 @@ losses_adam = map(1:10) do i
     opt = Flux.ADAM(0.2)
     trace = [loss()]
     for i = 1:500
-        l,back = Zygote.forward(loss, pars)
+        l,back = Zygote.pullback(loss, pars)
         push!(trace, l)
         grads = back(l)
         Flux.Optimise.update!(opt, pars, grads)
@@ -134,3 +144,5 @@ valuetraces = valuetrace.(res_lbfgs)
 plot(valuetraces, yscale=:log10, xscale=:identity, lab="", c=:red)
 plot!(losses_adam, lab="", c=:blue, xlabel="Epochs", ylabel="Loss")
 plot!(losses_SLBFGS, lab="", c=:green)
+end
+end
