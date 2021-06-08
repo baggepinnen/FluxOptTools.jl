@@ -78,7 +78,7 @@ function acceptance_indicator(opt, ξ)
     r = rand()
     # cdf(Normal(-ϵ,σ²)) # QUESTION: use online stats to calculate this variance?
     fit!(opt.σ²,fξ)
-    r < cdf(Normal(0,√(value(opt.σ²))), -ϵ), fξ # QUESTION: The paper is not clear about this acceptance probability, this is what I think they mean, but should really ask the authors to clarify
+    r < Distributions.cdf(Normal(0,√(value(opt.σ²))), -ϵ), fξ # QUESTION: The paper is not clear about this acceptance probability, this is what I think they mean, but should really ask the authors to clarify
     # rand() < exp(ϵ/value(opt.σ²)), fξ
     # rand() < exp(ϵ), fξ
 end
