@@ -5,7 +5,7 @@ import Base.copyto!
 
 export veclength, optfuns
 
-veclength(grads::Zygote.Grads) = sum(length(g[1]) for g in grads.grads)
+veclength(grads::Zygote.Grads) = sum(typeof(g[1]) !== GlobalRef ? length(g[1]) : 0 for g in grads.grads)
 veclength(params::Flux.Params) = sum(length, params.params)
 veclength(x) = length(x)
 Base.zeros(grads::Zygote.Grads) = zeros(veclength(grads))
@@ -17,9 +17,11 @@ function copyto!(v::AbstractArray, grads::Zygote.Grads)
     @assert length(v) == veclength(grads)
     s = 1
     for g in grads.grads
-        l = length(g[2])
-        v[s:s+l-1] .= vec(g[2])
-        s += l
+        if typeof(g[1]) !== GlobalRef
+            l = length(g[2])
+            v[s:s+l-1] .= vec(g[2])
+            s += l
+        end
     end
     v
 end
