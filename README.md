@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/baggepinnen/FluxOptTools.jl.svg?branch=master)](https://travis-ci.org/baggepinnen/FluxOptTools.jl)
+[![CI](https://github.com/baggepinnen/FluxOptTools.jl/workflows/CI/badge.svg)](https://github.com/baggepinnen/FluxOptTools.jl/actions)
 [![codecov](https://codecov.io/gh/baggepinnen/FluxOptTools.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/baggepinnen/FluxOptTools.jl)
 
 # FluxOptTools
