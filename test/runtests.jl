@@ -1,3 +1,8 @@
+if haskey(ENV, "CI")
+    ENV["PLOTS_TEST"] = "true"
+    ENV["GKSwstype"] = "100" # gr segfault workaround
+end
+
 using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random
 ##
 @testset "FluxOptTools" begin
