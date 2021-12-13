@@ -7,8 +7,8 @@ using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random
 ##
 @testset "FluxOptTools" begin
 @info "Testing FluxOptTools"
-@testset "copyto" begin
-@info "Testing copyto"
+@testset "copy" begin
+@info "Testing copy"
 
 m = Chain(Dense(1,5,tanh), Dense(5,5,tanh) , Dense(5,1))
 x = collect(LinRange(-pi,pi,100)')
@@ -22,23 +22,23 @@ pars0 = deepcopy(pars)
 npars = veclength(pars)
 @test npars == 46
 
-copyto!(pars, zeros(pars))
+copy!(pars, zeros(pars))
 @test all(all(iszero, p) for p in pars)
 
 p = zeros(pars)
-copyto!(pars, 1:npars)
-copyto!(p, pars)
+copy!(pars, 1:npars)
+copy!(p, pars)
 @test p == 1:npars
 
 grads = Zygote.gradient(loss, pars)
 grads0 = deepcopy(grads)
 
-copyto!(grads, zeros(grads))
+copy!(grads, zeros(grads))
 @test all(all(iszero,grads[k]) for k in keys(grads.grads))
 
 p = zeros(grads)
-copyto!(grads, 1:npars)
-copyto!(p, grads)
+copy!(grads, 1:npars)
+copy!(p, grads)
 @test p == 1:npars
 end
 
