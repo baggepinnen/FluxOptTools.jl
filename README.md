@@ -36,12 +36,12 @@ The landscape is plotted by selecting two random directions and extending the cu
 What this package really does is flattening and reassembling the types `Flux.Params` and `Zygote.Grads` to and from vectors. These functions are used like so
 ```julia
 p = zeros(pars)  # Creates a vector of length sum(length, pars)
-copyto!(p,pars)  # Store pars in vector p
-copyto!(pars,p)  # Reverse
+copy!(p,pars)  # Store pars in vector p
+copy!(pars,p)  # Reverse
 
 g = zeros(grads) # Creates a vector of length sum(length, grads)
-copyto!(g,grads) # Store grads in vector g
-copyto!(grads,g) # Reverse
+copy!(g,grads) # Store grads in vector g
+copy!(grads,g) # Reverse
 ```
 This is what is used under the hood in the functions returned from `optfuns` in order to have everything on a form that Optim understands.
 
