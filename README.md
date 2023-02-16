@@ -16,13 +16,14 @@ pars   = Flux.params(m)
 lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
 res = Optim.optimize(Optim.only_fg!(fg!), p0, Optim.Options(iterations=1000, store_trace=true))
 ```
-The utility provided by this package is the function `optfuns` which returns three functions and `p0`, a vectorized version of `pars`. BFGS typically has better convergence properties than, e.g., the ADAM optimizer. Here's a benchmark where BFGS in red beats ADAGrad with tuned step size in blue, and a [stochastic L-BFGS [1]](https://arxiv.org/abs/1802.04310) ([implemented](https://github.com/baggepinnen/FluxOptTools.jl/blob/master/src/SLBFGS.jl) in this repository) in green performs somewhere in between.
+The utility provided by this package is the function `optfuns` which returns three functions and `p0`, a vectorized version of `pars`. BFGS typically has better convergence properties than, e.g., the ADAM optimizer. Here's a benchmark where BFGS in red beats ADAGrad with tuned step size in blue, and a [stochastic L-BFGS [1]](https://arxiv.org/abs/1802.04310) ([implemented](https://github.com/baggepinnen/FluxOptTools.jl/blob/master/src/SLBFGS.jl) in this repository) in green performs somewhere in between. From a time perspective, S-LBFGS is about 2 times slower than ADAM (with a square in memory complexity) while the traditional L-BFGS algorithm is around 4 times slower than ADAM.
 ![losses](figs/losses.svg)
+![times](figs/times.svg)
 
 The code for this benchmark is in the `runtests.jl`.
 
 ## Visualize loss landscape
-We define a plot recipe such that a loss landscape can be plotted with
+Based on the work on [loss landscape visualization [2]](https://arxiv.org/abs/1712.09913), we define a plot recipe such that a loss landscape can be plotted with
 ```julia
 using Plots
 plot(loss, pars, l=0.1, npoints=50, seriestype=:contour)
@@ -48,3 +49,5 @@ This is what is used under the hood in the functions returned from `optfuns` in 
 
 # References
 [[1] "Stochastic quasi-Newton with adaptive step lengths for large-scale problems", Adrian Wills, Thomas Schön, 2018](https://arxiv.org/abs/1802.04310)
+
+[[2] "Visualizing the Loss Landscape of Neural Nets", Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, Tom Goldstein, 2018](https://arxiv.org/abs/1712.09913)
