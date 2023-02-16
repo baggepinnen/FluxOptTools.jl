@@ -16,6 +16,7 @@ using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random, StatsP
         sp = sortperm(x[:])
 
         loss() = mean(abs2, model(x) .- y)
+        Zigote.refresh()
         pars = Flux.params(m)
         pars0 = deepcopy(pars)
         npars = veclength(pars)
