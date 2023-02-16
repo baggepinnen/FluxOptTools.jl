@@ -16,7 +16,7 @@ pars   = Flux.params(m)
 lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
 res = Optim.optimize(Optim.only_fg!(fg!), p0, Optim.Options(iterations=1000, store_trace=true))
 ```
-The utility provided by this package is the function `optfuns` which returns three functions and `p0`, a vectorized version of `pars`. BFGS typically has better convergence properties than, e.g., the ADAM optimizer. Here's a benchmark where BFGS in red beats ADAGrad with tuned step size in blue, and a [stochastic L-BFGS [1]](https://arxiv.org/abs/1802.04310) ([implemented](https://github.com/baggepinnen/FluxOptTools.jl/blob/master/src/SLBFGS.jl) in this repository) in green performs somewhere in between. From a time perspective, S-LBFGS is about 2 times slower than ADAM (with a square in memory complexity) while the traditional L-BFGS algorithm is around 4 times slower than ADAM.
+The utility provided by this package is the function `optfuns` which returns three functions and `p0`, a vectorized version of `pars`. BFGS typically has better convergence properties than, e.g., the ADAM optimizer. Here's a benchmark where BFGS in red beats ADAM in blue, and a [stochastic L-BFGS [1]](https://arxiv.org/abs/1802.04310) ([implemented](https://github.com/baggepinnen/FluxOptTools.jl/blob/master/src/SLBFGS.jl) in this repository) in green performs somewhere in between. From a time perspective, S-LBFGS is about 2 times slower than ADAM (with an aditionnal square in memory complexity for storing the Hessian matrix) while the traditional L-BFGS algorithm is around 4 times slower than ADAM (but similar memory burden as SL-BFGS).
 
 ![losses](figs/losses.svg)
 

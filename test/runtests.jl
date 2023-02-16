@@ -3,7 +3,7 @@ if haskey(ENV, "CI")
     ENV["GKSwstype"] = "100" # gr segfault workaround
 end
 
-using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random
+using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random, StatsPlots
 ##
 @testset "FluxOptTools" begin
     @info "Testing FluxOptTools"
@@ -86,7 +86,7 @@ using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random
             Random.seed!(i)
             model = Chain(Dense(1, 5, tanh), Dense(5, 5, tanh), Dense(5, 1))
             pars = Flux.params(model)
-            opt = Flux.ADAM(0.2)
+            opt = ADAM(0.2)
             trace = [loss(model)]
             t = @timed for i = 1:500
                 l, back = Zygote.pullback(() -> loss(model), pars)
@@ -152,10 +152,12 @@ using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random
         median_LBFGS = median(last.(res_lbfgs)[2:end])
         median_ADAM = median(last.(losses_adam)[2:end])
         median_SLBFGS = median(last.(losses_SLBFGS)[2:end])
+        time_matrix = reduce(hcat, [last.(res_lbfgs)[2:end], last.(losses_SLBFGS)[2:end], last.(losses_adam)[2:end]])
+        time_matrix ./= median_ADAM
+        boxplot(["LBFGS"], time_matrix[:, 1], legend=false, ylabel="Relative time", c=:red)
+        boxplot!(["SLBFGS"], time_matrix[:, 2], legend=false, c=:green)
+        boxplot!(["ADAM"], time_matrix[:, 3], legend=false, c=:blue) |> display
+
         @test median_ADAM < median_SLBFGS < median_LBFGS
-        # using StatsPlots
-        # time_matrix = reduce(hcat, [last.(res_lbfgs)[2:end], last.(losses_SLBFGS)[2:end], last.(losses_adam)[2:end]])
-        # time_matrix ./= median_ADAM
-        # boxplot(["LBFGS" "SLBFGS" "ADAM"], time_matrix, legend=false, ylabel="Relative time")
     end
 end
