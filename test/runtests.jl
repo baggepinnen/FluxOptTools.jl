@@ -10,13 +10,12 @@ using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random, StatsP
     @testset "copy" begin
         @info "Testing copy"
 
-        m = Chain(Dense(1, 5, tanh), Dense(5, 5, tanh), Dense(5, 1))
+        model = Chain(Dense(1, 5, tanh), Dense(5, 5, tanh), Dense(5, 1))
         x = collect(LinRange(-pi, pi, 100)')
         y = sin.(x)
         sp = sortperm(x[:])
 
-        loss() = mean(abs2, m(x) .- y)
-        Zygote.refresh()
+        loss() = mean(abs2, model(x) .- y)
         pars = Flux.params(m)
         pars0 = deepcopy(pars)
         npars = veclength(pars)
