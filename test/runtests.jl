@@ -15,7 +15,7 @@ using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random, StatsP
         y = sin.(x)
 
         loss() = mean(abs2, model(x) .- y)
-        Zigote.refresh()
+        Zygote.refresh()
         pars = Flux.params(model)
         pars0 = deepcopy(pars)
         npars = veclength(pars)
@@ -85,7 +85,7 @@ using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random, StatsP
             Random.seed!(i)
             model = Chain(Dense(1, 5, tanh), Dense(5, 5, tanh), Dense(5, 1))
             pars = Flux.params(model)
-            opt = ADAM(0.2)
+            opt = Adam(0.2)
             trace = [loss(model)]
             t = @timed for i = 1:500
                 l, back = Zygote.pullback(() -> loss(model), pars)
