@@ -28,11 +28,11 @@ The code for this benchmark is in the `runtests.jl`.
 Based on the work on [loss landscape visualization [2]](https://arxiv.org/abs/1712.09913), we define a plot recipe such that a loss landscape can be plotted with
 ```julia
 using Plots
-plot(loss, pars, l=0.1, npoints=50, seriestype=:contour)
+contourf(() -> log10(1 + loss()), pars, color=:turbo, npoints=50, lnorm=2)
 ```
 ![landscape](figs/landscape.svg)
 
-The landscape is plotted by selecting two random directions and extending the current point (`pars`) a distance `l*norm(pars)` (both negative and positive) along the two random directions. The number of loss evaluations will be `npoints^2`.
+The landscape is plotted by selecting two random directions and extending the current point (`pars`) a distance `lnorm * norm(pars)` (both negative and positive) along the two random directions. The number of loss evaluations will be `npoints^2`.
 
 
 ## Flatten and Unflatten

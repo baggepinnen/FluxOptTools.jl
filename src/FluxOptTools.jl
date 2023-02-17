@@ -10,13 +10,11 @@ veclength(x) = length(x)
 Base.zeros(grads::Zygote.Grads) = zeros(veclength(grads))
 Base.zeros(pars::Flux.Params) = zeros(veclength(pars))
 
-
-
-function optfuns(loss, pars::Union{Flux.Params, Zygote.Params})
+function optfuns(loss, pars::Union{Flux.Params,Zygote.Params})
     grads = Zygote.gradient(loss, pars)
     p0 = zeros(pars)
     copy!(p0, pars)
-    gradfun = function (g,w)
+    gradfun = function (g, w)
         copy!(pars, w)
         grads = Zygote.gradient(loss, pars)
         copy!(g, grads)
@@ -25,7 +23,7 @@ function optfuns(loss, pars::Union{Flux.Params, Zygote.Params})
         copy!(pars, w)
         loss()
     end
-    fg! = function (F,G,w)
+    fg! = function (F, G, w)
         copy!(pars, w)
         if G != nothing
             l, back = Zygote.pullback(loss, pars)
@@ -40,23 +38,23 @@ function optfuns(loss, pars::Union{Flux.Params, Zygote.Params})
     lossfun, gradfun, fg!, p0
 end
 
-@recipe function lossplot(loss::Function, pars::Flux.Params; l=0.1, npoints=30)
-    p       = zeros(pars)
-    copy!(p,pars)
-    pcopy   = deepcopy(p)
-    n0      = norm(p)
-    dx,dy   = randn(length(p)),randn(length(p))
-    dx     *= n0*l/norm(dx)
-    dy     *= n0*l/norm(dy)
-    pertvec = LinRange(-1,1,npoints)
-    losses = map(Iterators.product(pertvec,pertvec)) do (lx,ly)
-        pi = p + lx*dx + ly*dy
+@recipe function lossplot(loss::Function, pars::Flux.Params; lnorm=0.1, npoints=30)
+    p = zeros(pars)
+    copy!(p, pars)
+    pcopy = deepcopy(p)
+    n0 = norm(p)
+    dx, dy = randn(length(p)), randn(length(p))
+    dx *= n0 * lnorm / norm(dx)
+    dy *= n0 * lnorm / norm(dy)
+    pertvec = LinRange(-1, 1, npoints)
+    losses = map(Iterators.product(pertvec, pertvec)) do (lx, ly)
+        pi = p + lx * dx + ly * dy
         copy!(pars, pi)
         loss()
     end
     copy!(pars, pcopy)
     seriestype --> :contour
-    pertvec,pertvec,losses
+    pertvec, pertvec, losses
 end
 
 include("SLBFGS.jl")
