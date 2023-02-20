@@ -46,8 +46,8 @@ end
     pcopy   = deepcopy(p)
     n0      = norm(p)
 
-    !isnothing(seed) && Random.seed!(seed)
-    dx,dy   = randn(length(p)),randn(length(p))
+    rng = MersenneTwister(seed)
+    dx,dy   = randn(rng, length(p)), randn(rng, length(p))
     dx     *= n0*lnorm/norm(dx)
     dy     *= n0*lnorm/norm(dy)
 

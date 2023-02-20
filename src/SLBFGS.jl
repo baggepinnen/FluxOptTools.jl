@@ -84,7 +84,9 @@ function acceptance_indicator(opt, ξ)
 end
 
 #= 
-using FluxOptTools, Flux, Plots
+using FluxOptTools, Flux, Plots, Random, Statistics
+
+Random.seed!(1234)
 
 m = Chain(Dense(1, 3, tanh), Dense(3, 3, tanh), Dense(3, 3, tanh), Dense(3, 1))
 x = LinRange(-pi, pi, 100)'
@@ -115,5 +117,5 @@ trace = train(opt, p0, 3000)
 plot(trace, yscale=:log10, xscale=:identity, size=(400, 300))
 plot(x', [y' m(x)']) |> display
 
-contourf(() -> log10(1 + loss()), pars, color=:turbo, npoints=50, lnorm=2)
+contourf(() -> log10(1 + loss()), pars, color=:turbo, npoints=50, lnorm=2, seed=1234)
 =#
