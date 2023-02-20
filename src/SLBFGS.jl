@@ -1,16 +1,15 @@
 export SLBFGS, apply
 using Distributions, OnlineStats
-
 Base.@kwdef mutable struct SLBFGS{F,Σ}
     m::Int = 20# Memory length, was ∈ [2, 54] in paper
-    λ::Float64 = 1.0 # regularizer, was ∈ [0.04, 1] in paper
+    λ::Float64 = 1. # regularizer, was ∈ [0.04, 1] in paper
     ρ::Bool = false # Algorithm indicator
     κ::Float64 = 0.5 # Step-length scaling factor ∈ (0,1)
-    ᾱ::Float64 = 1.0 # maximum allowed step-length ∈ (0,1)  TODO: can be function of k
+    ᾱ::Float64 = 1. # maximum allowed step-length ∈ (0,1)  TODO: can be function of k
     α::Float64 = ᾱ
     fold::Float64 = Inf
     k::Int = 1 # Internal iteration index
-    σ²::Σ = OnlineStats.Variance(weight=McclainWeight(0.1))
+    σ²::Σ = OnlineStats.Variance(weight=McclainWeight(.1))
     xold::Vector{Float64}
     gold::Vector{Float64}
     f::F
@@ -18,11 +17,11 @@ Base.@kwdef mutable struct SLBFGS{F,Σ}
     S::Matrix{Float64}
 end
 
-function SLBFGS(f, x0; m=20, kwargs...)
+function SLBFGS(f,x0; m=20, kwargs...)
     d = length(x0)
-    Y = zeros(d, m)
-    S = zeros(d, m)
-    SLBFGS(; m=m, xold=x0, gold=zeros(d), f=f, Y=Y, S=S, kwargs...)
+    Y = zeros(d,m)
+    S = zeros(d,m)
+    SLBFGS(;m=m, xold=x0, gold=zeros(d), f=f, Y=Y, S=S, kwargs...)
 end
 
 function apply(opt::SLBFGS, g, x)
@@ -30,14 +29,14 @@ function apply(opt::SLBFGS, g, x)
     update_YS!(opt, g, x)
     p = search_direction(opt, g)
     while true
-        ξ = x + opt.α * p
-        c, fξ = acceptance_indicator(opt, ξ)
+        ξ = x + opt.α*p
+        c,fξ = acceptance_indicator(opt, ξ)
         # Update vars
         if c
             x = ξ
             opt.fold = fξ
         end
-        opt.α = c * (1 / opt.k)^ρ * ᾱ + (1 - c)κ * opt.α
+        opt.α = c*(1/opt.k)^ρ * ᾱ + (1-c)κ*opt.α
         opt.k += 1
         c && break
     end
@@ -46,30 +45,30 @@ end
 
 function update_YS!(opt, g, x)
     opt.k == 1 && (opt.gold .= g)
-    Y, S = opt.Y, opt.S
-    ind = ((opt.k - 1) % opt.m) + 1
-    Y[:, ind] .= g .- opt.gold
-    S[:, ind] .= x .- opt.xold
+    Y,S = opt.Y, opt.S
+    ind = ((opt.k-1) % opt.m) + 1
+    Y[:,ind] .= g .- opt.gold
+    S[:,ind] .= x .- opt.xold
     opt.gold .= g
     opt.xold .= x
 end
 
 function search_direction(opt, g)
     λ = opt.λ
-    Y, S = opt.Y, opt.S
+    Y,S = opt.Y, opt.S
     # r4 = R1'\Y1'y
     # r5 = √(λ + y'y - r4'r4)
     # r6 = (y'Y2 - r4'R2)/r5
     # # R6TR6 = R4'R4 - r6'r6 + r3'r3 # TODO: one is really interested in R6 and this should be obtained by downdating rith r6'r6 and updating with r3'r3
     # R6 = downdate(R4, r6)
     # R6 = update(R6, r3)
-    R = cholesky(Hermitian(Y'Y + λ * I))
+    R = cholesky(Hermitian(Y'Y + λ*I))
     H̄ = I
-    z = (1 / λ)Y * (S'g) + H̄ * g # QUESTION: they do not mention what H̄ they use
-    w = R \ (Y'z)
-    p = -z + Y * w
-    β = 2 * max(0, p'g / (g'g))
-    @. p -= β * g
+    z = (1/λ)Y*(S'g) + H̄*g # QUESTION: they do not mention what H̄ they use
+    w = R\(Y'z)
+    p = -z + Y*w
+    β = 2*max(0,p'g/(g'g))
+    @. p -= β*g
 end
 
 function acceptance_indicator(opt, ξ)
@@ -78,13 +77,13 @@ function acceptance_indicator(opt, ξ)
     ϵ < 0 && return (true, fξ)
     r = rand()
     # cdf(Normal(-ϵ,σ²)) # QUESTION: use online stats to calculate this variance?
-    fit!(opt.σ², fξ)
-    r < Distributions.cdf(Normal(0, √(value(opt.σ²))), -ϵ), fξ # QUESTION: The paper is not clear about this acceptance probability, this is what I think they mean, but should really ask the authors to clarify
+    fit!(opt.σ²,fξ)
+    r < Distributions.cdf(Normal(0,√(value(opt.σ²))), -ϵ), fξ # QUESTION: The paper is not clear about this acceptance probability, this is what I think they mean, but should really ask the authors to clarify
     # rand() < exp(ϵ/value(opt.σ²)), fξ
     # rand() < exp(ϵ), fξ
 end
 
-#= using FluxOptTools, Flux, Plots
+#= 
 using FluxOptTools, Flux, Plots
 
 m = Chain(Dense(1, 3, tanh), Dense(3, 3, tanh), Dense(3, 3, tanh), Dense(3, 1))

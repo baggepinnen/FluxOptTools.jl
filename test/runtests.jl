@@ -64,12 +64,12 @@ using FluxOptTools, Optim, Zygote, Flux, Plots, Test, Statistics, Random, StatsP
         @show loss(model)
         @test loss(model) < 1e-1
         plot(x[sp], [y[sp] model(x)[sp]]) |> display
-        plot(() -> loss(model), Flux.params(model), l=0.5, npoints=50, seriestype=:contour) |> display
+        contourf(() -> loss(model), Flux.params(model), lnorm=0.5, npoints=50, seriestype=:contour, seed=1234) |> display
 
         lossfun, gradfun, fg!, p0 = optfuns(() -> loss(model), Flux.params(model))
         res = Optim.optimize(Optim.only_fg!(fg!), p0, BFGS())
         @test loss(model) < 1e-3
-        plot(() -> loss(model), Flux.params(model), l=0.1, npoints=50) |> display
+        contourf(() -> loss(model), Flux.params(model), lnorm=0.1, npoints=50, seed=1234) |> display
 
         plot(x[sp], [y[sp] model(x)[sp]]) |> display
     end
