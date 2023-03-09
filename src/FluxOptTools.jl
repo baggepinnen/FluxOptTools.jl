@@ -51,7 +51,7 @@ end
     dx     *= n0*lnorm/norm(dx)
     dy     *= n0*lnorm/norm(dy)
 
-    pertvec = LinRange(-1,1,npoints)
+    pertvec = LinRange(-lnorm, lnorm, npoints)
     losses = map(Iterators.product(pertvec,pertvec)) do (lx,ly)
         pi = p + lx*dx + ly*dy
         copy!(pars, pi)
