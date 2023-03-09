@@ -68,12 +68,12 @@ end
 @show loss()
 @test loss() < 1e-1
 plot(x[sp], [y[sp] m(x)[sp]])  |> display
-plot(loss, pars, l=0.5, npoints=50, seriestype=:contour) |> display
+contourf(() -> log10(1 + loss()), pars, color=:turbo, npoints=50, lnorm=1, seed=1234) |> display
 
 lossfun, gradfun, fg!, p0 = optfuns(loss, pars)
 res = Optim.optimize(Optim.only_fg!(fg!), p0, BFGS())
 @test loss() < 1e-3
-plot(loss, pars, l=0.1, npoints=50) |> display
+contourf(() -> log10(1 + loss()), pars, color=:turbo, npoints=50, lnorm=1) |> display
 
 plot(x[sp], [y[sp] m(x)[sp]]) |> display
 

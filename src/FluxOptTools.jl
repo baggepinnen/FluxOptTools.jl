@@ -1,6 +1,6 @@
 module FluxOptTools
 
-using LinearAlgebra, Optim, Flux, Zygote, RecipesBase
+using LinearAlgebra, Optim, Flux, Zygote, RecipesBase, Random
 
 export veclength, optfuns
 
@@ -40,15 +40,22 @@ function optfuns(loss, pars::Union{Flux.Params, Zygote.Params})
     lossfun, gradfun, fg!, p0
 end
 
-@recipe function lossplot(loss::Function, pars::Flux.Params; l=0.1, npoints=30)
+@recipe function lossplot(loss::Function, pars::Flux.Params; lnorm=0.1, npoints=30, seed=nothing)
     p       = zeros(pars)
     copy!(p,pars)
     pcopy   = deepcopy(p)
     n0      = norm(p)
-    dx,dy   = randn(length(p)),randn(length(p))
-    dx     *= n0*l/norm(dx)
-    dy     *= n0*l/norm(dy)
-    pertvec = LinRange(-1,1,npoints)
+
+    if isnothing(seed)
+        dx,dy   = randn(length(p)),randn(length(p))
+    else
+        rng = MersenneTwister(seed)
+        dx,dy   = randn(rng,length(p)),randn(rng,length(p))
+    end
+
+    dx     *= n0*lnorm/norm(dx)
+    dy     *= n0*lnorm/norm(dy)
+    pertvec = LinRange(-lnorm,lnorm,npoints)
     losses = map(Iterators.product(pertvec,pertvec)) do (lx,ly)
         pi = p + lx*dx + ly*dy
         copy!(pars, pi)
