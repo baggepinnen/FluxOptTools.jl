@@ -27,13 +27,13 @@ function optfuns(loss, pars::Union{Flux.Params, Zygote.Params})
     end
     fg! = function (F,G,w)
         copy!(pars, w)
-        if G != nothing
+        if !isnothing(G)
             l, back = Zygote.pullback(loss, pars)
             grads = back(1)
             copy!(G, grads)
             return l
         end
-        if F != nothing
+        if !isnothing(F)
             return loss()
         end
     end
