@@ -87,9 +87,10 @@ y = sin.(x)
 loss(m) = mean(abs2, m(x) .- y)
 
 @info "Run ADAM"
+Zygote.refresh()
 losses_adam = map(1:10) do i
     Random.seed!(i)
-    model = Chain(Dense(1,5,tanh), Dense(5,5,tanh) , Dense(5,1))
+    model = Chain(Dense(1,5,tanh), Dense(5,5,tanh), Dense(5,1))
     pars = Flux.params(model)
     opt = Flux.Adam(0.2)
     trace = [loss(model)]
@@ -103,9 +104,10 @@ losses_adam = map(1:10) do i
 end
 
 @info "Run L-BFGS"
+Zygote.refresh()
 res_lbfgs = map(1:10) do i
     Random.seed!(i)
-    model = Chain(Dense(1,5,tanh), Dense(5,5,tanh) , Dense(5,1))
+    model = Chain(Dense(1,5,tanh), Dense(5,5,tanh), Dense(5,1))
     pars = Flux.params(model)
     lossfun, gradfun, fg!, p0 = optfuns(() -> loss(model), pars)
     res = @timed Optim.optimize(Optim.only_fg!(fg!), p0, BFGS(), Optim.Options(iterations=500, store_trace=true))
@@ -113,9 +115,10 @@ res_lbfgs = map(1:10) do i
 end
 
 @info "Run SL-BFGS"
+Zygote.refresh()
 losses_SLBFGS = map(1:10) do i
     Random.seed!(i)
-    model = Chain(Dense(1,5,tanh), Dense(5,5,tanh) , Dense(5,1))
+    model = Chain(Dense(1,5,tanh), Dense(5,5,tanh), Dense(5,1))
     pars = Flux.params(model)
     lossfun, gradfun, fg!, p0 = optfuns(() -> loss(model), pars)
     opt = SLBFGS(lossfun,p0; m=3, ᾱ=1., ρ=false, λ=.0001, κ=0.1)
