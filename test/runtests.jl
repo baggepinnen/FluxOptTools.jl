@@ -47,7 +47,7 @@ end
 @testset "optfuns" begin
 @info "Testing optfuns"
 
-model = Chain(Dense(1,5,tanh), Dense(5,5,tanh) , Dense(5,1))
+model = Chain(Dense(1,5,tanh), Dense(5,5,tanh), Dense(5,1))
 x = collect(LinRange{Float32}(-pi,pi,100)')
 y = sin.(x)
 sp = sortperm(x[:])
