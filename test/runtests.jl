@@ -121,7 +121,7 @@ losses_SLBFGS = map(1:10) do i
     model = Chain(Dense(1,5,tanh), Dense(5,5,tanh), Dense(5,1))
     pars = Flux.params(model)
     lossfun, gradfun, fg!, p0 = optfuns(() -> loss(model), pars)
-    opt = SLBFGS(lossfun,p0; m=3, ᾱ=1., ρ=false, λ=.0001, κ=0.1)
+    opt = SLBFGS(lossfun, p0; m=15, ᾱ=0.85, ρ=false, λ=0.0005, κ=0.2)
     function train(opt, p0, iters=20)
         p = copy(p0)
         g = zeros(veclength(pars))
@@ -140,7 +140,7 @@ end
 # Loss plot
 valuetrace(r) = getfield.(r.trace, :value)
 valuetraces = valuetrace.(first.(res_lbfgs))
-plot(valuetraces[1], yscale=:log10, lab="LBFGS", c=:red, xlabel="Epochs", ylabel="Loss")
+plot(valuetraces[1], yscale=:log10, lab="LBFGS", c=:red, xlabel="Epochs", ylabel="Loss", yticks=[1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5])
 plot!(valuetraces[2:end], lab="", c=:red)
 median_loss_BFGS = median(last.(valuetraces))
 
