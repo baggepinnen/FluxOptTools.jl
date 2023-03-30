@@ -19,6 +19,9 @@ res = Optim.optimize(Optim.only_fg!(fg!), p0, Optim.Options(iterations=1000, sto
 The utility provided by this package is the function `optfuns` which returns three functions and `p0`, a vectorized version of `pars`. BFGS typically has better convergence properties than, e.g., the ADAM optimizer. Here's a benchmark where BFGS in red beats ADAGrad with tuned step size in blue, and a [stochastic L-BFGS [1]](https://arxiv.org/abs/1802.04310) ([implemented](https://github.com/baggepinnen/FluxOptTools.jl/blob/master/src/SLBFGS.jl) in this repository) in green performs somewhere in between.
 ![losses](figs/losses.svg)
 
+From a computational time perspective, S-LBFGS is about 2 times slower than ADAM (with additionnal memory complexity) while the traditional L-BFGS algorithm is around 3 times slower than ADAM (but similar memory burden as SL-BFGS).
+![times](figs/times.svg)
+
 The code for this benchmark is in the `runtests.jl`.
 
 ## Visualize loss landscape
