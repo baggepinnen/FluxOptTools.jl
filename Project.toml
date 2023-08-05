@@ -1,7 +1,7 @@
 name = "FluxOptTools"
 uuid = "ca11d760-9bce-11e9-0b7e-4f72fcadb4f9"
 authors = ["Fredrik Bagge Carlson <baggepinnen@gmail.com>"]
-version = "0.1.2"
+version = "0.1.3"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
